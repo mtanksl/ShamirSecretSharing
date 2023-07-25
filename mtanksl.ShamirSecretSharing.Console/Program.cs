@@ -1,10 +1,7 @@
-﻿using SecretSharingDotNet.Cryptography;
-using SecretSharingDotNet.Math;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 
-namespace ConsoleApp1
+namespace mtanksl.ShamirSecretSharing
 {
     internal class Program
     {
@@ -13,8 +10,8 @@ namespace ConsoleApp1
             while (true)
             {
                 Console.WriteLine("Choose an option:");
-                Console.WriteLine("1 - Split password into shares");
-                Console.WriteLine("2 - Join shares into password");
+                Console.WriteLine("1 - Split message into shares");
+                Console.WriteLine("2 - Join shares into message");
 
                 var option = Console.ReadLine();
 
@@ -35,56 +32,43 @@ namespace ConsoleApp1
 
         private static void Split()
         {
-            Secret.LegacyMode.Value = true;
-
             try
             {
-                var gcd = new ExtendedEuclideanAlgorithm<BigInteger>();
-
-                var split = new ShamirsSecretSharing<BigInteger>(gcd);
-
                 Console.WriteLine("Minimum shares (numeric):");
 
                 var minimumShares = int.Parse(Console.ReadLine() );
 
                 Console.WriteLine("Total shares (numeric):");
-                
+
                 var totalShares = int.Parse(Console.ReadLine() );
 
-                Console.WriteLine("Password (alphanumeric):");
+                Console.WriteLine("Message (alphanumeric):");
 
-                var password = Console.ReadLine();
+                var message = Console.ReadLine();
 
-                var shares = split.MakeShares(minimumShares, totalShares, password);
-
-                foreach (var share in shares)
+                using (var sss = new ShamirSecretSharing() )
                 {
-                    Console.WriteLine("Share:");
+                    var shares = sss.Split(minimumShares, totalShares, message);
 
-                    Console.WriteLine(share);
+                    foreach (var share in shares)
+                    {
+                        Console.WriteLine("Share:");
+
+                        Console.WriteLine(share);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString() );
             }
-            finally
-            {
-                Secret.LegacyMode.Value = false;
-            }
         }
 
         private static void Join()
         {
-            Secret.LegacyMode.Value = true;
-
             try
             {
-                var gcd = new ExtendedEuclideanAlgorithm<BigInteger>();
-
-                var combine = new ShamirsSecretSharing<BigInteger>(gcd);
-
-                var shares = new List<string>();
+                var shares = new List<Share>();
 
                 Console.WriteLine("How many shares (numeric):");
 
@@ -96,22 +80,21 @@ namespace ConsoleApp1
 
                     var share = Console.ReadLine();
 
-                    shares.Add(share);
+                    shares.Add(Share.Parse(share) );
                 }
 
-                var password = combine.Reconstruction(shares.ToArray() );
+                using (var sss = new ShamirSecretSharing() )
+                {                  
+                    var message = sss.Join(shares.ToArray() );
 
-                Console.WriteLine("Password:");
+                    Console.WriteLine("Message:");
 
-                Console.WriteLine(password);
+                    Console.WriteLine(message);
+                }            
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString() );
-            }
-            finally
-            {
-                Secret.LegacyMode.Value = false;
             }
         }
     }
