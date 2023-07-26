@@ -6,7 +6,7 @@ A simple implementation in C# of Shamir's secret sharing algorithm.
 ![Nuget](https://img.shields.io/nuget/v/mtanksl.ShamirSecretSharing)
 
 ```
-dotnet add package mtanksl.ShamirSecretSharing --version 1.0.0
+dotnet add package mtanksl.ShamirSecretSharing --version 1.0.1
 ```
 
 # How to split a message into shares
