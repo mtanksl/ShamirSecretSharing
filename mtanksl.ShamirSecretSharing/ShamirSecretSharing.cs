@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 
@@ -20,8 +21,7 @@ namespace mtanksl.ShamirSecretSharing
 
         /// <summary>
         /// Split the message into n (totalShares) shares, requiring m (minimumShares) shares to reconstruct it.
-        /// </summary>
-        
+        /// </summary>        
         public Share[] Split(int minimumShares, int totalShares, string message)
         {
             var secret = new Secret(message);
@@ -30,7 +30,10 @@ namespace mtanksl.ShamirSecretSharing
 
             return shares;
         }
-        
+
+        /// <summary>
+        /// Split the message into n (totalShares) shares, requiring m (minimumShares) shares to reconstruct it.
+        /// </summary>
         public Share[] Split(int minimumShares, int totalShares, BigInteger value, BigInteger modulo)
         {
             if (minimumShares < 2)
@@ -84,11 +87,10 @@ namespace mtanksl.ShamirSecretSharing
 
         /// <summary>
         /// Reconstruct the message using the minimum required shares.
-        /// </summary>
-      
+        /// </summary>      
         public string Join(Share[] shares)
         {
-            var modulo = Secret.CalculateModulo(shares[0].Y);
+            var modulo = Secret.CalculateModulo(shares.Max(s => s.Y) );
 
             var value = Join(shares, modulo);
 
@@ -97,6 +99,9 @@ namespace mtanksl.ShamirSecretSharing
             return secret.Message;
         }
 
+        /// <summary>
+        /// Reconstruct the message using the minimum required shares.
+        /// </summary>
         public BigInteger Join(Share[] shares, BigInteger modulo)
         {
             var y = new BigInteger(0);
