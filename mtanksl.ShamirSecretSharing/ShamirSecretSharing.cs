@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,7 +8,7 @@ namespace mtanksl.ShamirSecretSharing
 {
     public class ShamirSecretSharing : IDisposable
     {
-        private static readonly int[] MersennePrimes = new int[] { /* 2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127 */ 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609 };
+        private static readonly int[] MersennePrimes = new int[] { /* 2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, */ 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, /* 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609 */ };
 
         private static BigInteger CalculateModulo(BigInteger value)
         {
@@ -30,7 +31,7 @@ namespace mtanksl.ShamirSecretSharing
             {
                 var modulo = BigInteger.Pow(2, exponent) - 1;
 
-                if (modulo.GetByteCount() == length)
+                if (modulo.ToByteArray().Length == length)
                 {
                     return modulo;
                 }
@@ -56,7 +57,7 @@ namespace mtanksl.ShamirSecretSharing
         /// </summary>        
         public Share[] Split(int minimumShares, int totalShares, string message)
         {
-            var value = new BigInteger(Encoding.UTF8.GetBytes(message), true);
+            var value = new BigInteger(Encoding.UTF8.GetBytes(message).Concat(new byte[] { 0x00 } ).ToArray() );
 
             var modulo = CalculateModulo(value);
 
@@ -91,11 +92,11 @@ namespace mtanksl.ShamirSecretSharing
 
             for (int i = 1; i < coeficients.Length; i++)
             {
-                var randomNumber = new byte[ modulo.GetByteCount() ];
+                var randomNumber = new byte[modulo.ToByteArray().Length];
 
                 random.GetNonZeroBytes(randomNumber);
 
-                coeficients[i] = new BigInteger(randomNumber, true); // k₁, k₂, ..., kₙ
+                coeficients[i] = new BigInteger(randomNumber.Concat(new byte[] { 0x00 } ).ToArray() ); // k₁, k₂, ..., kₙ
             }
 
             var shares = new Share[totalShares];
@@ -113,7 +114,7 @@ namespace mtanksl.ShamirSecretSharing
                     y = (y + coeficients[i] * BigInteger.Pow(x, i) ) % modulo;
                 }
 
-                shares[j] = new Share(x, y, modulo.GetByteCount() );
+                shares[j] = new Share(x, y, modulo.ToByteArray().Length);
             }
 
             return shares;

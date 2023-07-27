@@ -24,7 +24,7 @@ namespace mtanksl.ShamirSecretSharing
                 y[i] = Convert.ToByte(splits[1].Substring(i * 2, 2), 16);
             }
 
-            return new Share(new BigInteger(x, true), new BigInteger(y, true), y.Length);
+            return new Share(new BigInteger(x.Concat(new byte[] { 0x00 } ).ToArray() ), new BigInteger(y.Concat(new byte[] { 0x00 } ).ToArray() ), y.Length);
         }
 
         public static bool TryParse(string value, out Share result)
