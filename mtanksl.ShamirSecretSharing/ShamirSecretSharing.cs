@@ -1,12 +1,44 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace mtanksl.ShamirSecretSharing
 {
     public class ShamirSecretSharing : IDisposable
     {
+        private static readonly int[] MersennePrimes = new int[] { /* 2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127 */ 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609 };
+
+        private static BigInteger CalculateModulo(BigInteger value)
+        {
+            foreach (var exponent in MersennePrimes)
+            {
+                var modulo = BigInteger.Pow(2, exponent) - 1;
+
+                if (modulo > value)
+                {
+                    return modulo;
+                }
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private static BigInteger CalculateModulo(int length)
+        {
+            foreach (var exponent in MersennePrimes)
+            {
+                var modulo = BigInteger.Pow(2, exponent) - 1;
+
+                if (modulo.GetByteCount() == length)
+                {
+                    return modulo;
+                }
+            }
+
+            throw new NotImplementedException();
+        }
+
         private RandomNumberGenerator random;
 
         public ShamirSecretSharing()
@@ -24,9 +56,11 @@ namespace mtanksl.ShamirSecretSharing
         /// </summary>        
         public Share[] Split(int minimumShares, int totalShares, string message)
         {
-            var secret = new Secret(message);
+            var value = new BigInteger(Encoding.UTF8.GetBytes(message), true);
 
-            var shares = Split(minimumShares, totalShares, secret.Value, secret.Modulo);
+            var modulo = CalculateModulo(value);
+
+            var shares = Split(minimumShares, totalShares, value, modulo);
 
             return shares;
         }
@@ -79,7 +113,7 @@ namespace mtanksl.ShamirSecretSharing
                     y = (y + coeficients[i] * BigInteger.Pow(x, i) ) % modulo;
                 }
 
-                shares[j] = new Share(x, y);
+                shares[j] = new Share(x, y, modulo.GetByteCount() );
             }
 
             return shares;
@@ -90,13 +124,13 @@ namespace mtanksl.ShamirSecretSharing
         /// </summary>      
         public string Join(Share[] shares)
         {
-            var modulo = Secret.CalculateModulo(shares.Max(s => s.Y) );
+            var modulo = CalculateModulo(shares[0].Length);
 
             var value = Join(shares, modulo);
 
-            var secret = new Secret(value, modulo);
+            var message = Encoding.UTF8.GetString(value.ToByteArray() );
 
-            return secret.Message;
+            return message;
         }
 
         /// <summary>

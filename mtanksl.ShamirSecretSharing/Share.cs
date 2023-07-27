@@ -24,7 +24,7 @@ namespace mtanksl.ShamirSecretSharing
                 y[i] = Convert.ToByte(splits[1].Substring(i * 2, 2), 16);
             }
 
-            return new Share(new BigInteger(x, true), new BigInteger(y, true) );
+            return new Share(new BigInteger(x, true), new BigInteger(y, true), y.Length);
         }
 
         public static bool TryParse(string value, out Share result)
@@ -43,20 +43,33 @@ namespace mtanksl.ShamirSecretSharing
             }          
         }
 
-        public Share(BigInteger x, BigInteger y)
+        public Share(BigInteger x, BigInteger y, int length)
         {
             X = x;
 
             Y = y;
+
+            Length = length;
         }
 
         public BigInteger X { get; }
 
         public BigInteger Y { get; }
 
+        public int Length { get; }
+
         public override string ToString()
         {
-            return string.Concat(X.ToByteArray().Select(b => b.ToString("X2") ) ) + "-" + string.Concat(Y.ToByteArray().Select(b => b.ToString("X2") ) );
+            var extended = new byte[Length];
+
+            var y = Y.ToByteArray();
+
+            for (int i = 0; i < y.Length; i++)
+            {
+                extended[i] = y[i];
+            }
+
+            return string.Concat(X.ToByteArray().Select(b => b.ToString("X2") ) ) + "-" + string.Concat(extended.Select(b => b.ToString("X2") ) );
         }
     }
 }
