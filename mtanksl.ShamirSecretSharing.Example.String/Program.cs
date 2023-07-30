@@ -1,14 +1,13 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Diagnostics;
+﻿using System;
 
-namespace mtanksl.ShamirSecretSharing.Tests
+namespace mtanksl.ShamirSecretSharing.Example.String
 {
-    [TestClass]
-    public class Example
+    internal class Program
     {
-        [TestMethod]
-        public void Split()
+        static void Main(string[] args)
         {
+            // How to split a message into shares
+
             using (var sss = new ShamirSecretSharing() )
             {
                 var message = "Share your knowledge. It is a way to achieve immortality.";
@@ -17,14 +16,12 @@ namespace mtanksl.ShamirSecretSharing.Tests
 
                 foreach (var share in shares)
                 {
-                    Debug.WriteLine(share);
+                    Console.WriteLine(share);
                 }
             }
-        }
 
-        [TestMethod]
-        public void Join()
-        {
+            // How to join shares into a message
+
             using (var sss = new ShamirSecretSharing() )
             {
                 var shares = new[] 
@@ -36,7 +33,7 @@ namespace mtanksl.ShamirSecretSharing.Tests
 
                 var message = sss.Join(shares);
 
-                Debug.WriteLine(message);
+                Console.WriteLine(message);
             }
         }
     }
